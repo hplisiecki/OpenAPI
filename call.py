@@ -5,6 +5,7 @@ import openai
 import os
 import json
 import logging
+import time
 from .api_threading import execute_api_requests_in_parallel
 
 
