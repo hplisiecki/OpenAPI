@@ -84,9 +84,7 @@ You can also retrieve embeddings for given texts. The package allows for asynchr
 from openapi import get_embedding
 
 texts = ["Hello, world!", "OpenAI rocks!"]
-embeddings = get_embedding(text
-
-s, save_filepath="embeddings.json", api_key="your-openai-api-key")
+embeddings = get_embedding(texts, save_filepath="embeddings.json", api_key="your-openai-api-key")
 
 print(embeddings)
 ```
