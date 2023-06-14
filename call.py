@@ -120,7 +120,8 @@ def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo", api_key
 
     # Load and return the saved results
     with open(save_filepath, 'r') as file:
-        results = json.load(file)
+        file = file.readlines()[-1]
+        results = eval(file)
 
     return results
 
@@ -168,6 +169,7 @@ def get_embedding(texts, save_filepath, api_key=None):
 
     # Load and return the saved results
     with open(save_filepath, 'r') as file:
-        results = json.load(file)
+        file = file.readlines()[-1]
+        results = eval(file)
 
     return results
