@@ -1,6 +1,6 @@
 # OpenA(P)I - Threading for OpenAI API 
 
-![OpenA(p)I logo](https://drive.google.com/file/d/1QWoRW-xS1weu_--X2YPR2_ZxGfL_ADPS/view?usp=sharing) ![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg) ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+![OpenA(p)I logo](https://drive.google.com/uc?export=view&id=1QWoRW-xS1weu_--X2YPR2_ZxGfL_ADPS) ![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg) ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
 OpenApI is a minimalistic Python package that facilitates threaded API calls to OpenAI. The package is designed to optimize the execution time for a batch of requests, making it particularly useful for fetching chat completions and text embeddings in bulk. Leveraging asyncio, the package executes API requests in parallel, providing an efficient and streamlined experience.
 
@@ -99,4 +99,4 @@ print(embeddings)
 `openapi` is licensed under the [MIT License](./LICENSE).
 
 ## Contributing
-We welcome contributions! Feel free to submit a Pull Request or create an issue for any bugs or feature requests.
+would be foolish
