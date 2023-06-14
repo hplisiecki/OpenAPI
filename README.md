@@ -91,7 +91,7 @@ print(embeddings)
 
 ## Dependencies
 - Python 3.7 or later
-- openai, tiktoken, asyncio Python libraries
+- openai, tiktoken Python libraries
 
 ## License
 `openapi` is licensed under the [MIT License](./LICENSE).
