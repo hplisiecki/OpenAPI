@@ -107,7 +107,11 @@ def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo", api_key
         request_url="https://api.openai.com/v1/chat/completions",
         api_key = api_key)
 
-    asyncio.run(job)
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(job)
+    except:
+        asyncio.run(job)
 
     # Load and return the saved results
     with open(save_filepath, 'r') as file:
@@ -135,7 +139,7 @@ def get_embedding(texts, save_filepath, api_key=None):
         api_key = os.environ["OPENAI_API_KEY"]
 
     # Execute API requests in parallel and save results to a file
-    asyncio.run(execute_api_requests_in_parallel(
+    job = execute_api_requests_in_parallel(
         request_strings=request_strings,
         save_filepath=save_filepath,
         request_url="https://api.openai.com/v1/embeddings",
@@ -145,7 +149,12 @@ def get_embedding(texts, save_filepath, api_key=None):
         token_encoding_name="cl100k_base",
         max_attempts=3,
         logging_level=logging.INFO,
-    ))
+    )
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(job)
+    except:
+        asyncio.run(job)
 
     # Load and return the saved results
     with open(save_filepath, 'r') as file:
