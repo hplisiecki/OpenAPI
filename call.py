@@ -109,7 +109,12 @@ def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo", api_key
 
     try:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(job)
+        if loop.is_running():
+            # In a running event loop (Jupyter Notebooks, IPython), use create_task
+            task = asyncio.create_task(job)
+        else:
+            # Outside notebooks, use run_until_complete
+            loop.run_until_complete(job)
     except:
         asyncio.run(job)
 
@@ -152,7 +157,12 @@ def get_embedding(texts, save_filepath, api_key=None):
     )
     try:
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(job)
+        if loop.is_running():
+            # In a running event loop (Jupyter Notebooks, IPython), use create_task
+            task = asyncio.create_task(job)
+        else:
+            # Outside notebooks, use run_until_complete
+            loop.run_until_complete(job)
     except:
         asyncio.run(job)
 
