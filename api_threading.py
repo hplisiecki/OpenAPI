@@ -2,7 +2,7 @@ import asyncio
 import json
 from typing import List
 import logging
-from api_functions import (
+from .api_functions import (
     process_api_requests_from_file,
     api_endpoint_from_url,
     num_tokens_consumed_from_request,

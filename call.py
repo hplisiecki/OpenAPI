@@ -5,7 +5,7 @@ import openai
 import os
 import json
 import logging
-from api_threading import execute_api_requests_in_parallel
+from .api_threading import execute_api_requests_in_parallel
 
 
 def auth(api_key=None, key_path=None):
