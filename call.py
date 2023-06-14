@@ -1,7 +1,7 @@
 import asyncio
 import json
 from typing import List
-# import openai
+import openai
 import os
 import json
 import logging
@@ -80,7 +80,7 @@ def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613"):
     return [json.dumps(job, ensure_ascii=False) for job in jobs]
 
 
-def completion(prompts, system_messages, save_filepath, model="gpt-3.5-turbo", api_key=None):
+def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo", api_key=None):
     """
     Processes chat completions in parallel and saves the results in a file. Can be used
     to batch process multiple prompts and system messages.
@@ -114,9 +114,6 @@ def completion(prompts, system_messages, save_filepath, model="gpt-3.5-turbo", a
         results = json.load(file)
 
     return results
-
-
-import json
 
 
 def get_embedding(texts, save_filepath, api_key=None):
