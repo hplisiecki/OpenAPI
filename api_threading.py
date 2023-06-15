@@ -2,13 +2,19 @@ import asyncio
 import json
 from typing import List
 import logging
-from .api_functions import (
-    process_api_requests_from_file,
-    api_endpoint_from_url,
-    num_tokens_consumed_from_request,
-    APIRequest,
-    StatusTracker
-)
+
+try:
+    # Try a relative import (when run as part of a package)
+    from .parallel_processor import (
+        process_api_requests_from_file,
+        api_endpoint_from_url,
+        num_tokens_consumed_from_request,
+        APIRequest,
+        StatusTracker
+    )
+except ImportError:
+    # Fall back to an absolute import (when run as a standalone script)
+    from parallel_processor import (   process_api_requests_from_file,     api_endpoint_from_url,  num_tokens_consumed_from_request,    APIRequest,     StatusTracker    )
 
 
 async def execute_api_requests_in_parallel(

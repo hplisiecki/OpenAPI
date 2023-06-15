@@ -6,7 +6,12 @@ import os
 import json
 import logging
 import time
-from .api_threading import execute_api_requests_in_parallel
+try:
+    # Try a relative import (when run as part of a package)
+    from .api_threading import execute_api_requests_in_parallel
+except ImportError:
+    # Fall back to an absolute import (when run as a standalone script)
+    from api_threading import execute_api_requests_in_parallel
 
 
 def auth(api_key=None, key_path=None):
@@ -62,7 +67,10 @@ def call(prompt, system_message, model="gpt-3.5-turbo-0613", as_str=False):
     return chat if not as_str else chat.choices[0]['message']['content']
 
 
-def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613"):
+
+def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613", temperature=1, top_p=1, n=1,
+                 stream=False, stop=None, max_tokens=None, presence_penalty=0, frequency_penalty=0,
+                 functions=None, function_call="none"):
     """
     Prepares chat strings in JSON format for batch processing. Constructs the chat
     payload required by the OpenAI API.
@@ -71,17 +79,65 @@ def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613"):
         prompts (list): List of prompts or input messages.
         system_messages (list): List of system messages to guide the model's behavior.
         model (str, optional): Model name to use. Default is "gpt-3.5-turbo-0613".
+        temperature (float, optional): Sampling temperature between 0 and 2. Default is 1.
+        top_p (float, optional): Nucleus sampling parameter. Default is 1.
+        n (int, optional): Number of chat completion choices to generate. Default is 1.
+        stream (bool, optional): Whether to send partial message deltas. Default is False.
+        stop (string or array, optional): Up to 4 sequences where the API will stop generating further tokens.
+        max_tokens (int, optional): Maximum number of tokens to generate.
+        presence_penalty (float, optional): Penalizes new tokens based on whether they appear in the text so far.
+        frequency_penalty (float, optional): Penalizes new tokens based on their existing frequency in the text so far.
+        functions (list, optional): A list of functions described by a JSON schema.
+        function_call (string or object, optional): Controls how the model responds to function calls.
 
     Returns:
         list: A list of chat strings in JSON format.
     """
+
+    params = {"temperature": temperature,
+              "top_p": top_p,
+              "n": n,
+              "stream": stream,
+              "stop": stop,
+              "max_tokens": max_tokens,
+              "presence_penalty": presence_penalty,
+              "frequency_penalty": frequency_penalty,
+              "functions": functions,
+              "function_call": function_call}
+
+    default_values = {"temperature": 1, "top_p": 1, "n": 1, "stream": False, "stop": None, "max_tokens": None, "presence_penalty": 0, "frequency_penalty": 0, "functions": None, "function_call": "none"}
+
     jobs = [{"model": model,
-             "messages": [{"role": "system", "content": system_message}, {"role": "user", "content": prompt}]} for
-            prompt, system_message in zip(prompts, system_messages)]
+             "messages": [{"role": "system", "content": system_message}, {"role": "user", "content": prompt}],
+             **{param: value for param, value in params.items() if value != default_values[param]}}
+            for prompt, system_message in zip(prompts, system_messages)]
+
     return [json.dumps(job, ensure_ascii=False) for job in jobs]
 
+# Example usage
+prompts = ["What's the weather like?"]
+system_messages = ["This is a weather bot."]
+functions = [{
+    "name": "get_current_weather",
+    "description": "Get the current weather in a given location",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "location": {
+                "type": "string",
+                "description": "The city and state, e.g. San Francisco, CA"
+            }
+        },
+        "required": ["location"]
+    }
+}]
+function_call = "auto"
 
-def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo", api_key=None):
+chat_string = chat_strings(prompts, system_messages, functions=functions, function_call=function_call)
+print(chat_string)
+
+
+def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo", api_key=None, **kwargs):
     """
     Processes chat completions in parallel and saves the results in a file. Can be used
     to batch process multiple prompts and system messages.
@@ -100,7 +156,7 @@ def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo", api_key
     if not isinstance(prompts, list): prompts = [prompts]
     if not isinstance(system_messages, list): system_messages = [system_messages]
     if len(system_messages) == 1: system_messages = system_messages * len(prompts)
-    request_strings = chat_strings(prompts, system_messages, model)
+    request_strings = chat_strings(prompts, system_messages, model, **kwargs)
     if api_key is None: api_key = os.environ["OPENAI_API_KEY"]
     job = execute_api_requests_in_parallel(
         request_strings=request_strings,
@@ -118,19 +174,9 @@ def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo", api_key
             loop.run_until_complete(job)
     except:
         asyncio.run(job)
-        
-    attempts = 0
-    while True:
-        try:
-            # Try to load and return the saved results
-            with open(save_filepath, 'r') as file:
-                results = [eval(line) for line in file.readlines()]
-            return results
-        except:
-            attempts += 1
-            if attempts > 16:
-                return
-            time.sleep(0.25)
+
+
+    return File(save_filepath)
 
 
 def get_embedding(texts, save_filepath, api_key=None):
@@ -174,17 +220,56 @@ def get_embedding(texts, save_filepath, api_key=None):
     except:
         asyncio.run(job)
 
-    attempts = 0
-    while True:
-        try:
-            # Try to load and return the saved results
-            with open(save_filepath, 'r') as file:
-                results = [eval(line) for line in file.readlines()]
-            return results
-        except:
-            attempts+=1
-            if attempts>16:
-                return
-            time.sleep(0.25)
+    return File(save_filepath)
 
 
+class File:
+    def __init__(self, path):
+        self.path = path
+        self.values = None
+
+    def load(self):
+        if self.values is None:
+            try:
+                with open(self.path, 'r') as file:
+                    self.values = [eval(line) for line in file.readlines()]
+            except FileNotFoundError:
+                print(f"File not found: {self.path}")
+            except Exception as e:
+                print(f"Error loading file: {e}")
+
+    @property
+    def prompts(self):
+        if self.values is None:
+            self.load()
+        return [entry[0] for entry in self.values] if self.values else []
+
+    @property
+    def completions(self):
+        if self.values is None:
+            self.load()
+        return [entry[1] for entry in self.values] if self.values else []
+
+    @property
+    def _prompts(self):
+        if self.values is None:
+            self.load()
+        return [entry["messages"][1]["content"] for entry in self.prompts] if self.prompts else []
+
+    @property
+    def _completions(self):
+        if self.values is None:
+            self.load()
+        return [entry["choices"][0]["message"]["content"] for entry in self.completions] if self.completions else []
+
+    def __getitem__(self, index):
+        if self.values is None:
+            self.load()
+        return self.values[index] if self.values else None
+
+auth()
+# f = chat('a','a','test')
+f = File('test')
+f.load()
+print(f.values)
+print(f._completions)
