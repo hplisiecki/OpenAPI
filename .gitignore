@@ -1,0 +1,10 @@
+
+*.pyc
+.idea/workspace.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/misc.xml
+.idea/openapi.iml
+.idea/vcs.xml
+test_agent
+test

@@ -9,9 +9,11 @@ import time
 try:
     # Try a relative import (when run as part of a package)
     from .api_threading import execute_api_requests_in_parallel
+    from .functions import generate_schema_from_function
 except ImportError:
     # Fall back to an absolute import (when run as a standalone script)
     from api_threading import execute_api_requests_in_parallel
+    from functions import generate_schema_from_function
 
 
 def auth(api_key=None, key_path=None):
@@ -114,30 +116,10 @@ def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613", temperatu
 
     return [json.dumps(job, ensure_ascii=False) for job in jobs]
 
-# Example usage
-prompts = ["What's the weather like?"]
-system_messages = ["This is a weather bot."]
-functions = [{
-    "name": "get_current_weather",
-    "description": "Get the current weather in a given location",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "location": {
-                "type": "string",
-                "description": "The city and state, e.g. San Francisco, CA"
-            }
-        },
-        "required": ["location"]
-    }
-}]
-function_call = "auto"
-
-chat_string = chat_strings(prompts, system_messages, functions=functions, function_call=function_call)
-print(chat_string)
 
 
-def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo", api_key=None, **kwargs):
+
+def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo-0613", api_key=None, **kwargs):
     """
     Processes chat completions in parallel and saves the results in a file. Can be used
     to batch process multiple prompts and system messages.
@@ -232,7 +214,7 @@ class File:
         if self.values is None:
             try:
                 with open(self.path, 'r') as file:
-                    self.values = [eval(line) for line in file.readlines()]
+                    self.values = [eval(line.replace(' null',' None')) for line in file.readlines()]
             except FileNotFoundError:
                 print(f"File not found: {self.path}")
             except Exception as e:
@@ -269,7 +251,56 @@ class File:
 
 auth()
 # f = chat('a','a','test')
-f = File('test')
-f.load()
-print(f.values)
-print(f._completions)
+# Example usage
+prompts = ["""You are taking part in a study, where you've been asked to solve the following puzzle:
+
+Peter is looking at Linda
+Linda is looking at Henry
+Peter is married
+Henry is not married
+Is someone who is married looking at someone who is not married?
+You have answered: We can't tell
+Your explanation: Based on the given information, we know that Peter is married and Henry is not married. However, we do not have any information about Linda's marital status. 
+
+A Message to you:
+
+Hi,
+Thank you for your well-thought-out response. I appreciate the clarity and critical thinking you’ve brought to the discussion. However, there seems to be a small misunderstanding which I'd like to address.
+
+Let’s reexamine the question: “Is someone who is married looking at someone who is not married?” The question does not require that it be the same married person in every scenario; rather, it asks if, in the given situation, there exists at least one instance of a married person looking at an unmarried person.
+
+Now let's revisit the scenarios I presented:
+
+1. If Linda is married, then she is looking at Henry, who is not married. In this scenario, Linda (married) is looking at Henry (not married), fulfilling the condition.
+   
+2. If Linda is not married, then we have Peter (who is married) looking at Linda (not married). In this scenario, Peter (married) is looking at Linda (not married), again fulfilling the condition.
+
+Note that the question doesn't ask if the same married person is looking at an unmarried person in all cases. It asks whether, in the information provided, there is at least one instance of this happening. Since we have established that in either scenario, regardless of Linda’s marital status, there is at least one instance of a married person looking at an unmarried person, the answer must be “yes”.
+
+Your concern seems to stem from the idea that the “someone who is married” must remain constant across both scenarios. However, this is not a requirement of the question. It merely asks if such a situation exists within the information provided, not whether it’s consistently the same individual who is married.
+
+I hope this clears up the confusion and helps in understanding why the answer is indeed "yes".
+
+Best regards,
+
+"""]
+system_messages = ["You are a participant in a psychology study, your behaviour has been encoded in function inputs"]
+
+
+def revise_your_answer(thought: str, new_answer: str, new_explanation: str):
+    """Decide to revise your answer based on the message response.
+
+    Parameters:
+        thought (string): The internal thought process behind the decision.
+        new_answer (string): The revised answer.
+        new_explanation (string): The explanation for the revised answer.
+    """
+    pass
+
+
+
+json_schema = generate_schema_from_function(function)
+
+function_call = "auto"
+
+file = chat(prompts, system_messages, "test_agent", functions=[json_schema], function_call=function_call)
