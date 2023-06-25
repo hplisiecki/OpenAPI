@@ -249,42 +249,42 @@ class File:
             self.load()
         return self.values[index] if self.values else None
 
-auth()
-# f = chat('a','a','test')
-# Example usage
-prompts = ["""You are taking part in a study, where you've been asked to solve the following puzzle:
+# auth()
+# # f = chat('a','a','test')
+# # Example usage
+# prompts = ["""You are taking part in a study, where you've been asked to solve the following puzzle:
 
-Peter is looking at Linda
-Linda is looking at Henry
-Peter is married
-Henry is not married
-Is someone who is married looking at someone who is not married?
-You have answered: We can't tell
-Your explanation: Based on the given information, we know that Peter is married and Henry is not married. However, we do not have any information about Linda's marital status. 
+# Peter is looking at Linda
+# Linda is looking at Henry
+# Peter is married
+# Henry is not married
+# Is someone who is married looking at someone who is not married?
+# You have answered: We can't tell
+# Your explanation: Based on the given information, we know that Peter is married and Henry is not married. However, we do not have any information about Linda's marital status. 
 
-A Message to you:
+# A Message to you:
 
-Hi,
-Thank you for your well-thought-out response. I appreciate the clarity and critical thinking you’ve brought to the discussion. However, there seems to be a small misunderstanding which I'd like to address.
+# Hi,
+# Thank you for your well-thought-out response. I appreciate the clarity and critical thinking you’ve brought to the discussion. However, there seems to be a small misunderstanding which I'd like to address.
 
-Let’s reexamine the question: “Is someone who is married looking at someone who is not married?” The question does not require that it be the same married person in every scenario; rather, it asks if, in the given situation, there exists at least one instance of a married person looking at an unmarried person.
+# Let’s reexamine the question: “Is someone who is married looking at someone who is not married?” The question does not require that it be the same married person in every scenario; rather, it asks if, in the given situation, there exists at least one instance of a married person looking at an unmarried person.
 
-Now let's revisit the scenarios I presented:
+# Now let's revisit the scenarios I presented:
 
-1. If Linda is married, then she is looking at Henry, who is not married. In this scenario, Linda (married) is looking at Henry (not married), fulfilling the condition.
+# 1. If Linda is married, then she is looking at Henry, who is not married. In this scenario, Linda (married) is looking at Henry (not married), fulfilling the condition.
    
-2. If Linda is not married, then we have Peter (who is married) looking at Linda (not married). In this scenario, Peter (married) is looking at Linda (not married), again fulfilling the condition.
+# 2. If Linda is not married, then we have Peter (who is married) looking at Linda (not married). In this scenario, Peter (married) is looking at Linda (not married), again fulfilling the condition.
 
-Note that the question doesn't ask if the same married person is looking at an unmarried person in all cases. It asks whether, in the information provided, there is at least one instance of this happening. Since we have established that in either scenario, regardless of Linda’s marital status, there is at least one instance of a married person looking at an unmarried person, the answer must be “yes”.
+# Note that the question doesn't ask if the same married person is looking at an unmarried person in all cases. It asks whether, in the information provided, there is at least one instance of this happening. Since we have established that in either scenario, regardless of Linda’s marital status, there is at least one instance of a married person looking at an unmarried person, the answer must be “yes”.
 
-Your concern seems to stem from the idea that the “someone who is married” must remain constant across both scenarios. However, this is not a requirement of the question. It merely asks if such a situation exists within the information provided, not whether it’s consistently the same individual who is married.
+# Your concern seems to stem from the idea that the “someone who is married” must remain constant across both scenarios. However, this is not a requirement of the question. It merely asks if such a situation exists within the information provided, not whether it’s consistently the same individual who is married.
 
-I hope this clears up the confusion and helps in understanding why the answer is indeed "yes".
+# I hope this clears up the confusion and helps in understanding why the answer is indeed "yes".
 
-Best regards,
+# Best regards,
 
-"""]
-system_messages = ["You are a participant in a psychology study, your behaviour has been encoded in function inputs"]
+# """]
+# system_messages = ["You are a participant in a psychology study, your behaviour has been encoded in function inputs"]
 
 
 def revise_your_answer(thought: str, new_answer: str, new_explanation: str):
@@ -299,8 +299,8 @@ def revise_your_answer(thought: str, new_answer: str, new_explanation: str):
 
 
 
-json_schema = generate_schema_from_function(function)
+# json_schema = generate_schema_from_function(function)
 
-function_call = "auto"
+# function_call = "auto"
 
-file = chat(prompts, system_messages, "test_agent", functions=[json_schema], function_call=function_call)
+# file = chat(prompts, system_messages, "test_agent", functions=[json_schema], function_call=function_call)
