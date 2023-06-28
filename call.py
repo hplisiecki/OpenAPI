@@ -64,7 +64,7 @@ def call(prompt, system_message, model="gpt-3.5-turbo-0613", as_str=False):
         Returns:
             Chat object or string message based on the `as_str` parameter.
         """
-    messages = [{"role": "system", "content": system_message}, {"role": "user", "content": prompt + "\n" + text}]
+    messages = [{"role": "system", "content": system_message}, {"role": "user", "content": prompt}]
     chat = openai.ChatCompletion.create(model=model, messages=messages)
     return chat if not as_str else chat.choices[0]['message']['content']
 
