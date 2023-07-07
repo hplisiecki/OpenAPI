@@ -74,27 +74,26 @@ def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613", temperatu
                  stream=False, stop=None, max_tokens=None, presence_penalty=0, frequency_penalty=0,
                  functions=None, function_call="none"):
     """
-    Prepares chat strings in JSON format for batch processing. Constructs the chat
-    payload required by the OpenAI API.
+        Prepares a list of chat strings in JSON format for batch processing. Each string represents a separate chat prompt for the OpenAI API.
 
-    Parameters:
-        prompts (list): List of prompts or input messages.
-        system_messages (list): List of system messages to guide the model's behavior.
-        model (str, optional): Model name to use. Default is "gpt-3.5-turbo-0613".
-        temperature (float, optional): Sampling temperature between 0 and 2. Default is 1.
-        top_p (float, optional): Nucleus sampling parameter. Default is 1.
-        n (int, optional): Number of chat completion choices to generate. Default is 1.
-        stream (bool, optional): Whether to send partial message deltas. Default is False.
-        stop (string or array, optional): Up to 4 sequences where the API will stop generating further tokens.
-        max_tokens (int, optional): Maximum number of tokens to generate.
-        presence_penalty (float, optional): Penalizes new tokens based on whether they appear in the text so far.
-        frequency_penalty (float, optional): Penalizes new tokens based on their existing frequency in the text so far.
-        functions (list, optional): A list of functions described by a JSON schema.
-        function_call (string or object, optional): Controls how the model responds to function calls.
+        Parameters:
+            prompts (List[str]): List of prompts.
+            system_messages (List[str]): List of system messages to guide the model's behavior.
+            model (str, optional): Model name to use. Default is "gpt-3.5-turbo-0613".
+            temperature (float, optional): Sampling temperature. Default is 1.
+            top_p (float, optional): Nucleus sampling parameter. Default is 1.
+            n (int, optional): Number of chat completion choices to generate. Default is 1.
+            stream (bool, optional): Whether to send partial message deltas. Default is False.
+            stop (str or List[str], optional): Up to 4 sequences where the API will stop generating further tokens.
+            max_tokens (int, optional): Maximum number of tokens to generate.
+            presence_penalty (float, optional): Penalty for new tokens based on their presence so far.
+            frequency_penalty (float, optional): Penalty for new tokens based on their frequency so far.
+            functions (List[dict], optional): List of functions defined in the OpenAI schema.
+            function_call (str, optional): The type of function call to make. Default is "none".
 
-    Returns:
-        list: A list of chat strings in JSON format.
-    """
+        Returns:
+            List[str]: A list of request strings in JSON format.
+        """
 
     params = {"temperature": temperature,
               "top_p": top_p,
@@ -119,24 +118,32 @@ def chat_strings(prompts, system_messages, model="gpt-3.5-turbo-0613", temperatu
 
 
 
-def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo-0613", api_key=None, **kwargs):
+def chat(prompts, system_messages, save_filepath = "chat_temp.txt", model="gpt-3.5-turbo-0613", api_key=None, verbose = True, as_str = False, **kwargs):
     """
-    Processes chat completions in parallel and saves the results in a file. Can be used
-    to batch process multiple prompts and system messages.
+    Processes a list of chat prompts in parallel, saving the results to a specified file.
 
     Parameters:
-        prompts (list or str): List or single string of prompts or input messages.
-        system_messages (list or str): List or single string of system messages to guide
-                                       the model's behavior.
-        save_filepath (str): File path to save the results.
-        model (str, optional): Model name to use. Default is "gpt-3.5-turbo".
+        prompts (List[str] or str): List or single prompt to send to the model.
+        system_messages (List[str] or str): List or single system message to guide the model's behavior.
+        save_filepath (str, optional): Path to save the results. Default is "chat_temp.txt".
+        model (str, optional): Model name to use. Default is "gpt-3.5-turbo-0613".
         api_key (str, optional): API key for authentication. If None, uses environment variable.
+        verbose (bool, optional): If True, enables detailed logging. Default is True.
+        as_str (bool, optional): If True, returns only the model's message as string, otherwise returns the entire response object. Default is False.
+        **kwargs: Additional parameters to be passed to the `chat_strings` function.
 
     Returns:
-        Coroutine object representing the asynchronous execution of the API requests.
+        Union[Coroutine, openai.ChatCompletion, str]: Coroutine object representing the asynchronous execution of the API requests if save_filepath is provided. Otherwise, returns the chat response object, or a string if as_str is True.
     """
-    if not isinstance(prompts, list): prompts = [prompts]
+    if save_filepath == "chat_temp.txt":
+        with open(save_filepath,'w') as f:
+            f = ''
     if not isinstance(system_messages, list): system_messages = [system_messages]
+    if not isinstance(prompts, list): # If no save_filepath we assume we can skip saving
+        if save_filepath == "chat_temp.txt":
+            return call(prompts, system_messages[0], model = model, as_str = as_str)
+        else:
+            prompts = [prompts]
     if len(system_messages) == 1: system_messages = system_messages * len(prompts)
     request_strings = chat_strings(prompts, system_messages, model, **kwargs)
     if api_key is None: api_key = os.environ["OPENAI_API_KEY"]
@@ -144,7 +151,9 @@ def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo-0613", ap
         request_strings=request_strings,
         save_filepath=save_filepath,
         request_url="https://api.openai.com/v1/chat/completions",
-        api_key = api_key)
+        api_key = api_key,
+        logging_level=logging.INFO if verbose else logging.ERROR
+    )
 
     try:
         loop = asyncio.get_event_loop()
@@ -154,11 +163,10 @@ def chat(prompts, system_messages, save_filepath, model="gpt-3.5-turbo-0613", ap
         else:
             # Outside notebooks, use run_until_complete
             loop.run_until_complete(job)
-    except:
+    except Exception as E:
         asyncio.run(job)
 
-
-    return File(save_filepath)
+    return File(save_filepath)[:]
 
 
 def get_embedding(texts, save_filepath, api_key=None):
